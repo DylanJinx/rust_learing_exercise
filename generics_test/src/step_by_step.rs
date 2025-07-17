@@ -97,6 +97,50 @@ impl<T: Summary> Summary for AccountWrapper<T> {
     }
 }
 
+// ===============================
+// 4. 模拟Solana合约逻辑
+// ===============================
+#[derive(Debug, PartialEq)]
+pub enum TransactionResult {
+    Success,
+    InsufficientFunds,
+    InvalidAccount,
+}
+
+pub fn transfer_tokens<T: Summary + fmt::Debug, U: Summary + fmt::Debug>(
+    from: &T,
+    to: &U,
+    amount: u64,
+) -> TransactionResult {
+    println!("开始转账：");
+    println!("从：{}", from.summarize());
+    println!("  到: {}", to.summarize());
+    println!("  金额: {}", amount);
+
+    if amount == 0 {
+        TransactionResult::InvalidAccount
+    } else if amount > 10000 {
+        TransactionResult::InsufficientFunds
+    } else {
+        TransactionResult::Success
+    }
+}
+
+// 处理交易结果
+pub fn handle_transaction_result(result: TransactionResult) {
+    match result {
+        TransactionResult::Success => {
+            println!("✅ 交易成功!");
+        },
+        TransactionResult::InsufficientFunds => {
+            println!("❌ 余额不足!");
+        },
+        TransactionResult::InvalidAccount => {
+            println!("❌ 账户无效!");
+        },
+    }
+}
+
 
 fn main() {
     let token_account = TokenAccount {
@@ -163,11 +207,18 @@ fn main() {
     // 新增：测试多重特征约束
     println!("\n--- 测试多重特征约束 ---");
   
-        // 这个函数需要类型同时实现Summary和Debug
-        validate_and_process(&token_account);
-        println!();
-        validate_and_process(&user_account);
-        println!();
-        validate_and_process(&wrapped_token);
-        validate_and_process(&wrapped_user);
+    // 这个函数需要类型同时实现Summary和Debug
+    validate_and_process(&token_account);
+    println!();
+    validate_and_process(&user_account);
+    println!();
+    validate_and_process(&wrapped_token);
+    validate_and_process(&wrapped_user);
+
+    // 新增：测试转账和结果处理
+    println!("\n--- 测试转账和结果处理 ---");
+
+    // 测试成功转账
+    let result1 = transfer_tokens(&token_account, &user_account, 100);
+    handle_transaction_result(result1);
 }
