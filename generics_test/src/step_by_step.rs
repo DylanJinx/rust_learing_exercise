@@ -42,6 +42,20 @@ pub fn process_account(account: &impl Summary) { // impl Summary：任何实现�
     println!("验证结果: {}", account.validate());
 }
 
+// T: Summary + fmt::Debug：
+//   - 这意味着类型 T 必须同时实现 Summary 和 fmt::Debug 两个 trait
+//   - 只有满足这两个条件的类型才能作为参数传入
+pub fn validate_and_process<T: Summary + fmt::Debug>(account: &T) {
+    println!("调试信息： {:?}", account);
+    println!("账户摘要： {}", account.summarize());
+
+    if account.validate() {
+        println!("✓ 账户验证通过");
+    } else {
+        println!("✗ 账户验证失败");
+    }
+}
+
 
 // ===============================
 // 3. 泛型基础
@@ -55,7 +69,7 @@ fn get_summary<T: Summary>(item: &T) -> String {
     item.summarize()
 }
 
-
+#[derive(Debug)]
 pub struct AccountWrapper<T> {
     pub key: String,
     pub data: T,
@@ -145,4 +159,15 @@ fn main() {
     println!("\n处理包装后的账户:");
     process_account(&wrapped_token);
     process_account(&wrapped_user);
+
+    // 新增：测试多重特征约束
+    println!("\n--- 测试多重特征约束 ---");
+  
+        // 这个函数需要类型同时实现Summary和Debug
+        validate_and_process(&token_account);
+        println!();
+        validate_and_process(&user_account);
+        println!();
+        validate_and_process(&wrapped_token);
+        validate_and_process(&wrapped_user);
 }
