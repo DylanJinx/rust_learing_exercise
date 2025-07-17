@@ -141,6 +141,44 @@ pub fn handle_transaction_result(result: TransactionResult) {
     }
 }
 
+#[derive(Debug)]
+pub enum ProgramInstruction {
+    Initialize { initial_supply: u64 },
+    Transfer { amount: u64 },
+    Mint { amount: u64 },
+}
+
+// 程序处理器 - 使用泛型处理不同类型的账户
+pub struct ProgramProcessor;
+
+impl ProgramProcessor {
+    pub fn process_instruction<T: Summary + fmt::Debug>(
+        instruction: ProgramInstruction,
+        account: &T,
+    ) -> TransactionResult {
+        match instruction {
+            ProgramInstruction::Initialize {
+                initial_supply
+            } => {
+                println!("初始化程序，初始供应量: {}",   initial_supply);
+                    println!("  处理账户: {}", account.summarize());
+                TransactionResult::Success
+            },
+            ProgramInstruction::Transfer {
+                amount
+            } => {
+                println!("执行转账，金额: {}", amount);
+                TransactionResult::Success
+            },
+            ProgramInstruction::Mint { amount } => {
+                println!("铸造代币，数量: {}", amount);
+                TransactionResult::Success
+            },
+        }
+    }
+}
+
+
 
 fn main() {
     let token_account = TokenAccount {
@@ -221,4 +259,26 @@ fn main() {
     // 测试成功转账
     let result1 = transfer_tokens(&token_account, &user_account, 100);
     handle_transaction_result(result1);
+
+    // 新增：测试程序指令处理
+    println!("\n--- 测试程序指令处理 ---");
+    // 测试初始化指令
+
+    let initialize_instruction = ProgramInstruction::Initialize { initial_supply: 1000000 };
+    let account = &token_account;
+    let result = ProgramProcessor::process_instruction(initialize_instruction, account);
+    handle_transaction_result(result);
+
+    let transfer_instruction = ProgramInstruction::Transfer { amount: 500 };
+    let user_account = &user_account;
+    let result = ProgramProcessor::process_instruction(transfer_instruction, user_account);
+    handle_transaction_result(result);
+
+    let mint_instruction = ProgramInstruction::Mint { amount: 1000 };
+    let wrapped_account = &wrapped_token;
+    let result = ProgramProcessor::process_instruction(mint_instruction, wrapped_account);
+    handle_transaction_result(result);
+
+
+
 }
